@@ -173,7 +173,7 @@ namespace Whisper
         private unsafe bool InferenceWhisper(float[] samples, WhisperNativeParams param)
         {
             LogUtils.Log("Inference Whisper on input data...");
-                
+
             var sw = new Stopwatch();
             sw.Start();
             fixed (float* samplesPtr = samples)
