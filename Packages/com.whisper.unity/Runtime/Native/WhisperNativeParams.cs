@@ -177,7 +177,7 @@ namespace Whisper.Native
         [StructLayout(LayoutKind.Sequential)]
         struct greedy_struct
         {
-            int best_of; // ref: https://github.com/openai/whisper/blob/f82bc59f5ea234d4b97fb2860842ed38519f7e65/whisper/transcribe.py#L264
+            public int best_of; // ref: https://github.com/openai/whisper/blob/f82bc59f5ea234d4b97fb2860842ed38519f7e65/whisper/transcribe.py#L264
         }
 
         greedy_struct greedy;
@@ -190,6 +190,18 @@ namespace Whisper.Native
         }
 
         beam_search_struct beam_search;
+
+        public float TemperatureInc
+        {
+            get => temperature_inc;
+            set => temperature_inc = value;
+        }
+
+        public int GreedyBestOf
+        {
+            get => greedy.best_of;
+            set => greedy.best_of = value;
+        }
 
         // called for every newly generated text segment
         public whisper_new_segment_callback new_segment_callback;

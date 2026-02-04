@@ -46,6 +46,16 @@ namespace Whisper.Samples
 
             vadToggle.isOn = microphoneRecord.vadStop;
             vadToggle.onValueChanged.AddListener(OnVadChanged);
+
+            // FUTO Voice Input optimization settings
+            whisper.temperatureInc = 0.0f;  // Disable fallback for faster inference
+            whisper.greedyBestOf = 1;        // Single sampling for faster inference
+            whisper.threadsCount = 0;        // Auto-detect CPU cores
+        }
+
+        // audio_ctx 계산 함수 (FUTO Voice Input 방식)
+        int CalculateAudioCtx(int numSamples) {
+            return Mathf.Min(1500, (int)Mathf.Ceil(numSamples / 320.0f) + 32);
         }
 
         private void OnVadChanged(bool vadStop)
@@ -71,6 +81,9 @@ namespace Whisper.Samples
         {
             buttonText.text = "Record";
             _buffer = "";
+
+            // FUTO Voice Input optimization: dynamic audio_ctx calculation
+            whisper.audioCtx = CalculateAudioCtx(recordedAudio.Data.Length);
 
             var sw = new Stopwatch();
             sw.Start();

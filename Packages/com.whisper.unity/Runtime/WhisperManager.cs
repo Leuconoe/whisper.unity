@@ -90,6 +90,17 @@ namespace Whisper
                  "These can significantly reduce the quality of the output.")]
         public int audioCtx;
 
+        [Tooltip("Temperature increment for fallback sampling (0.0 = no fallback). " +
+                 "FUTO optimization: set to 0.0 for faster inference.")]
+        public float temperatureInc = 0.0f;
+
+        [Tooltip("Number of best candidates to keep for greedy sampling (default = 5). " +
+                 "FUTO optimization: set to 1 for faster inference.")]
+        public int greedyBestOf = 1;
+
+        [Tooltip("Number of threads to use (0 = auto-detect CPU cores).")]
+        public int threadsCount = 0;
+
         /// <summary>
         /// Raised when whisper transcribed a new text segment from audio. 
         /// </summary>
@@ -306,6 +317,26 @@ namespace Whisper
             _params.EnableTokens = enableTokens;
             _params.TokenTimestamps = tokensTimestamps;
             _params.InitialPrompt = initialPrompt;
+            
+            // FUTO Voice Input optimizations
+            _params.TemperatureInc = temperatureInc;
+            
+            // Set threads count (0 = auto-detect)
+            if (threadsCount > 0)
+            {
+                _params.ThreadsCount = threadsCount;
+            }
+            else
+            {
+                // Auto-detect CPU cores
+                _params.ThreadsCount = SystemInfo.processorCount;
+            }
+            
+            // Apply greedy_best_of based on strategy
+            if (strategy == WhisperSamplingStrategy.WHISPER_SAMPLING_GREEDY)
+            {
+                _params.GreedyBestOf = greedyBestOf;
+            }
         }
         
         private WhisperContextParams CreateContextParams()

@@ -311,6 +311,28 @@ namespace Whisper
 
          #endregion
 
+         #region Sampling Parameters
+
+         /// <summary>
+         /// Temperature increment for fallback sampling (0.0 = no fallback).
+         /// </summary>
+         public float TemperatureInc
+         {
+            get => _param.TemperatureInc;
+            set => _param.TemperatureInc = value;
+         }
+
+         /// <summary>
+         /// Number of best candidates to keep for greedy sampling.
+         /// </summary>
+         public int GreedyBestOf
+         {
+            get => _param.GreedyBestOf;
+            set => _param.GreedyBestOf = value;
+         }
+
+         #endregion
+
          #region Callbacks
 
          /// <summary>
