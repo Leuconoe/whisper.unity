@@ -1,0 +1,24 @@
+# ninja log v7
+33	654	7918959781571112	ggml/src/CMakeFiles/ggml-base.dir/ggml-alloc.c.o	dd7b4ba4ff77de21
+301	670	7918959784255443	ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/ggml-cpu-hbm.cpp.o	3a641f3c8a34f3bc
+113	805	7918959782381328	ggml/src/CMakeFiles/ggml-base.dir/ggml-threading.cpp.o	50266f5be2227f3e
+337	871	7918959784621754	ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/ggml-cpu-quants.c.o	d97eedb154e682bc
+7	1162	7918959781311108	ggml/src/CMakeFiles/ggml-base.dir/ggml.c.o	e0a843547574cd08
+373	1320	7918959784976854	ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/ggml-cpu-traits.cpp.o	a9d6a3c102038b30
+406	1344	7918959785306843	ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/amx/amx.cpp.o	876f2830fd63b854
+60	1398	7918959781842067	ggml/src/CMakeFiles/ggml-base.dir/ggml-backend.cpp.o	353d5c92590a0cd2
+439	1423	7918959785636893	ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/amx/mmq.cpp.o	d9ca7e8684e86ef4
+86	1522	7918959782111302	ggml/src/CMakeFiles/ggml-base.dir/ggml-opt.cpp.o	30d6a2c55ad96940
+233	1548	7918959783575013	ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/ggml-cpu.cpp.o	e349d8e72e489b7c
+269	2042	7918959783935405	ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/ggml-cpu-aarch64.cpp.o	9a49ec372cbe094b
+549	2080	7918959786732420	ggml/src/CMakeFiles/ggml.dir/ggml-backend-reg.cpp.o	cda68b68d94fee1f
+475	2176	7918959785997501	ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/binary-ops.cpp.o	de09b89808172102
+510	2517	7918959786342331	ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/unary-ops.cpp.o	df44f142da186524
+142	2990	7918959782663985	ggml/src/CMakeFiles/ggml-base.dir/ggml-quants.c.o	b8fbd473005a088c
+171	3699	7918959782956661	ggml/src/CMakeFiles/ggml-base.dir/gguf.cpp.o	5feaa04641f61d0b
+3700	3876	7918959818243416	ggml/src/libggml-base.a	a4899a54f6930b53
+200	4855	7918959783246711	ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/ggml-cpu.c.o	f409f8df827c73fe
+4856	5016	7918959829809747	ggml/src/libggml-cpu.a	65033ec8c2597ba0
+5016	5170	7918959831405490	ggml/src/libggml.a	8b12c6bf241a0aca
+596	11996	7918959787212655	src/CMakeFiles/whisper.dir/whisper.cpp.o	a18b3dd5bf78ddde
+11997	12152	7918959901215539	src/libwhisper.a	4e1a086989fe8153

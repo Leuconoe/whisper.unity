@@ -1077,7 +1077,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   logLevel: 1
-  modelPath: Whisper/ggml-base.bin
+  modelPath: Whisper/voice-input-multilingual-74.bin
   isModelPathInStreamingAssets: 1
   initOnAwake: 1
   useGpu: 1

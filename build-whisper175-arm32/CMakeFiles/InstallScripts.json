@@ -1,0 +1,11 @@
+{
+	"InstallScripts" : 
+	[
+		"D:/workspace/___2025___LIGNex1-Drone/_AI/speech-and-text-unity-ios-android/voice-input/whisper.unity/build-whisper175-arm32/cmake_install.cmake",
+		"D:/workspace/___2025___LIGNex1-Drone/_AI/speech-and-text-unity-ios-android/voice-input/whisper.unity/build-whisper175-arm32/ggml/cmake_install.cmake",
+		"D:/workspace/___2025___LIGNex1-Drone/_AI/speech-and-text-unity-ios-android/voice-input/whisper.unity/build-whisper175-arm32/ggml/src/cmake_install.cmake",
+		"D:/workspace/___2025___LIGNex1-Drone/_AI/speech-and-text-unity-ios-android/voice-input/whisper.unity/build-whisper175-arm32/ggml/src/ggml-cpu/cmake_install.cmake",
+		"D:/workspace/___2025___LIGNex1-Drone/_AI/speech-and-text-unity-ios-android/voice-input/whisper.unity/build-whisper175-arm32/src/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

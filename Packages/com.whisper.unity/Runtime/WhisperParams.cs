@@ -309,6 +309,16 @@ namespace Whisper
              set => _param.audio_ctx = value;
          }
 
+         /// <summary>
+         /// Set optimal audio context based on audio duration.
+         /// Can provide 2-6x speedup for audio shorter than 30 seconds.
+         /// </summary>
+         /// <param name="audioLengthSeconds">Audio length in seconds</param>
+         public void SetOptimalAudioContext(float audioLengthSeconds)
+         {
+             _param.audio_ctx = Utils.WhisperOptimization.CalculateAudioContext(audioLengthSeconds);
+         }
+
          #endregion
 
          #region Sampling Parameters
