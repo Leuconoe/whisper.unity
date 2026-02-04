@@ -1,0 +1,7 @@
+# ninja log v7
+31	228	7918819794934334	CMakeFiles/whisper-futo.dir/ggml-alloc.c.o	274922da321e777b
+56	322	7918819795182516	CMakeFiles/whisper-futo.dir/ggml-backend.c.o	8e7500dd61ae3285
+84	675	7918819795458438	CMakeFiles/whisper-futo.dir/ggml-quants.c.o	eae816fe15b508ca
+5	3278	7918819794677363	CMakeFiles/whisper-futo.dir/ggml.c.o	163f9e11b0fccbd9
+110	8251	7918819795734057	CMakeFiles/whisper-futo.dir/whisper.cpp.o	83086bfc78effb27
+8263	8405	7918819877245606	lib/libwhisper-futo.a	d76117d9c882c5c4

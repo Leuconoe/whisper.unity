@@ -1,0 +1,3 @@
+D:/workspace/___2025___LIGNex1-Drone/_AI/speech-and-text-unity-ios-android/voice-input/whisper.unity/build-futo-arm32/CMakeFiles/whisper-futo.dir
+D:/workspace/___2025___LIGNex1-Drone/_AI/speech-and-text-unity-ios-android/voice-input/whisper.unity/build-futo-arm32/CMakeFiles/edit_cache.dir
+D:/workspace/___2025___LIGNex1-Drone/_AI/speech-and-text-unity-ios-android/voice-input/whisper.unity/build-futo-arm32/CMakeFiles/rebuild_cache.dir
