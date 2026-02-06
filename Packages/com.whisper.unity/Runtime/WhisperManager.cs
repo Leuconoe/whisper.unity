@@ -34,9 +34,9 @@ namespace Whisper
         [SerializeField]
         private bool useGpu;
         
-        [Tooltip("Use the Flash Attention algorithm for faster inference")]
+        [Tooltip("Use the Flash Attention algorithm for faster inference (RECOMMENDED)")]
         [SerializeField]
-        private bool flashAttention;
+        private bool flashAttention = true;
 
         [Header("Language")] 
         [Tooltip("Output text language. Use empty or \"auto\" for auto-detection.")]
@@ -89,6 +89,15 @@ namespace Whisper
         [Tooltip("[EXPERIMENTAL] Overwrite the audio context size (0 = use default). " +
                  "These can significantly reduce the quality of the output.")]
         public int audioCtx;
+
+        [Header("Performance Optimization")]
+        [Tooltip("Temperature increment for fallback sampling (0.0 = no fallback). " +
+                 "FUTO optimization: set to 0.0 for faster inference.")]
+        public float temperatureInc = 0.0f;
+
+        [Tooltip("Number of best candidates to keep for greedy sampling (default = 5). " +
+                 "FUTO optimization: set to 1 for faster inference.")]
+        public int greedyBestOf = 1;
 
         [Tooltip("Number of threads to use (0 = auto-detect CPU cores).")]
         public int threadsCount = 0;
@@ -359,7 +368,11 @@ namespace Whisper
             _params.EnableTokens = enableTokens;
             _params.TokenTimestamps = tokensTimestamps;
             _params.InitialPrompt = initialPrompt;
-
+            
+            // FUTO Voice Input optimizations
+            _params.TemperatureInc = temperatureInc;
+            _params.GreedyBestOf = greedyBestOf;
+            
             // Set threads count (0 = auto-detect, capped at 4 for optimal performance)
             if (threadsCount > 0)
             {
