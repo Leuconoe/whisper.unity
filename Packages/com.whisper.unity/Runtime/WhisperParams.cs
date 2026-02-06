@@ -297,6 +297,30 @@ namespace Whisper
 
          #endregion
          
+         #region Decoding Optimization
+
+         /// <summary>
+         /// Temperature increment for fallback sampling (0.0 = no fallback).
+         /// FUTO optimization: set to 0.0 for faster inference.
+         /// </summary>
+         public float TemperatureInc
+         {
+            get => _param.TemperatureInc;
+            set => _param.TemperatureInc = value;
+         }
+
+         /// <summary>
+         /// Number of best candidates to keep for greedy sampling.
+         /// FUTO optimization: set to 1 for faster inference.
+         /// </summary>
+         public int GreedyBestOf
+         {
+            get => _param.GreedyBestOf;
+            set => _param.GreedyBestOf = value;
+         }
+
+         #endregion
+
          #region Speed Up
          
          /// <summary>
