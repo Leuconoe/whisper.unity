@@ -1,7 +1,9 @@
 {
     "name": "com.whisper.unity.editor",
     "rootNamespace": "",
-    "references": [],
+    "references": [
+        "GUID:07dcbb6497358493fa23aaaad4b6b054"
+    ],
     "includePlatforms": [
         "Editor"
     ],
