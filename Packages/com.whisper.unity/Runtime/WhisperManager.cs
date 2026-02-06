@@ -90,6 +90,9 @@ namespace Whisper
                  "These can significantly reduce the quality of the output.")]
         public int audioCtx;
 
+        [Tooltip("Number of threads to use (0 = auto-detect CPU cores).")]
+        public int threadsCount = 0;
+
         /// <summary>
         /// Raised when whisper transcribed a new text segment from audio. 
         /// </summary>
@@ -234,6 +237,30 @@ namespace Whisper
         }
         
         /// <summary>
+        /// Start async transcription of audio clip with automatic audio_ctx optimization.
+        /// This can provide 2-6x speedup for audio shorter than 15 seconds.
+        /// </summary>
+        /// <param name="clip">Audio clip to transcribe.</param>
+        /// <param name="optimizeAudioCtx">Whether to auto-calculate optimal audio_ctx.</param>
+        /// <returns>Full audio transcript. Null if transcription failed.</returns>
+        public async Task<WhisperResult> GetTextAsyncOptimized(AudioClip clip, bool optimizeAudioCtx = true)
+        {
+            var isLoaded = await CheckIfLoaded();
+            if (!isLoaded)
+                return null;
+
+            UpdateParams();
+            
+            if (optimizeAudioCtx)
+            {
+                _params.AudioCtx = WhisperOptimization.CalculateAudioContext(clip.length);
+            }
+            
+            var res = await _whisper.GetTextAsync(clip, _params);
+            return res;
+        }
+        
+        /// <summary>
         /// Start async transcription of audio buffer.
         /// </summary>
         /// <param name="samples">Raw audio buffer.</param>
@@ -247,6 +274,32 @@ namespace Whisper
                 return null;
 
             UpdateParams();
+            var res = await _whisper.GetTextAsync(samples, frequency, channels, _params);
+            return res;
+        }
+        
+        /// <summary>
+        /// Start async transcription of audio buffer with automatic audio_ctx optimization.
+        /// This can provide 2-6x speedup for audio shorter than 15 seconds.
+        /// </summary>
+        /// <param name="samples">Raw audio buffer.</param>
+        /// <param name="frequency">Audio sample rate.</param>
+        /// <param name="channels">Audio channels count.</param>
+        /// <param name="optimizeAudioCtx">Whether to auto-calculate optimal audio_ctx.</param>
+        /// <returns>Full audio transcript. Null if transcription failed.</returns>
+        public async Task<WhisperResult> GetTextAsyncOptimized(float[] samples, int frequency, int channels, bool optimizeAudioCtx = true)
+        {
+            var isLoaded = await CheckIfLoaded();
+            if (!isLoaded)
+                return null;
+
+            UpdateParams();
+            
+            if (optimizeAudioCtx)
+            {
+                _params.AudioCtx = WhisperOptimization.CalculateAudioContextFromSamples(samples.Length, frequency);
+            }
+            
             var res = await _whisper.GetTextAsync(samples, frequency, channels, _params);
             return res;
         }
@@ -306,6 +359,16 @@ namespace Whisper
             _params.EnableTokens = enableTokens;
             _params.TokenTimestamps = tokensTimestamps;
             _params.InitialPrompt = initialPrompt;
+
+            // Set threads count (0 = auto-detect, capped at 4 for optimal performance)
+            if (threadsCount > 0)
+            {
+                _params.ThreadsCount = threadsCount;
+            }
+            else
+            {
+                _params.ThreadsCount = System.Math.Min(4, SystemInfo.processorCount);
+            }
         }
         
         private WhisperContextParams CreateContextParams()
