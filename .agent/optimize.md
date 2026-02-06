@@ -110,13 +110,7 @@ Write-Host "Warm: Count=$($warm.Count) Min=$($sorted[0]) Max=$($sorted[-1]) Avg=
 
 ## 남은 실험 항목
 
-### 1. OPENMP=OFF 최종 측정 ⚡ 우선
-
-**상태**: 네이티브 빌드 완료, Unity 빌드+측정 필요  
-**현재 build_cpp.sh**: `GGML_OPENMP=OFF` (이미 설정됨)
-
-- 2단계부터 시작 (1단계 불필요)
-- 결과가 baseline(10.3x)과 동등 이상이면 OFF 확정
+모든 계획된 실험 완료. 추가 성능 개선 여지는 낮음.
 
 ---
 
@@ -212,6 +206,15 @@ PlayerSettings.SetIl2CppCompilerConfiguration(
 3. ~~**N-2: IL2CPP OptimizeSpeed**~~ — ✅ 완료: **12.0x (+16.5%)** ★핵심 변경★
 4. ~~**N-1: Managed Stripping**~~ — ✅ 완료: 12.1x (+0.8%)
 5. ~~**J-2: 로깅 비활성화**~~ — ✅ 완료: 12.1x (±0%, 유지)
+
+---
+
+## 추가 작업 (문서/도구)
+
+- `build_cpp.sh` 영문화 및 플래그 설명/성능 주석 블록 추가
+- `Assets/Editor/AndroidPreprocessBuild.cs` 추가 (빌드 전 Unity 설정 검증)
+- `Assets/Editor/WhisperManagerEditor.cs` 추가 (Inspector 경고 HelpBox)
+- `Assets/Editor/OptimizationValidator.cs` 제거 (AndroidPreprocessBuild로 대체)
 
 ---
 

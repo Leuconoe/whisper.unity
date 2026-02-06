@@ -1,6 +1,6 @@
 # whisper.unity.2022 — 최적화 Walkthrough
 
-> **최종 갱신**: 2026-02-06 16:00  
+> **최종 갱신**: 2026-02-06 18:40  
 > **목표**: Android ARM64에서 8.0x real-time 이상 달성 (참조: whisper.unity.2021 = 12.8x)  
 > **현재 최고 성능**: **~12.0x** (IL2CPP Master + OptimizeSpeed + Stripping High + 로깅 비활성화)  
 > **테스트 디바이스**: Snapdragon 855 (Kryo 485), adb ID: `46a880a0`
@@ -26,7 +26,6 @@
 1. **CRLF 줄바꿈**: `build_cpp.sh`가 Windows 줄바꿈으로 WSL에서 실행 불가 → `sed -i 's/\r$//'`로 해결
 2. **ar MRI 경로**: `$build_path`가 상대경로여서 `cd` 후 참조 실패 → `$(pwd)`로 절대경로 사용
 3. **llvm-ar 탐색**: `$android_sdk_path/../../../` 경로 계산 오류 → `dirname` 3단계로 NDK root 계산
-4. **Unity NDK 미설정**: `Android NDK not found` → `AutoBuilder.cs`에서 `EditorPrefs.SetString("AndroidNdkRootR21D", ...)` 자동 설정
 
 ---
 
@@ -103,6 +102,8 @@ WHISPER_LOG 매크로=비활성화     ← 성능 미미, 불필요 출력 제�
 
 11. **Stripping High > Medium**: High(3)가 Medium(2)보다 ~3% 빠름. 더 공격적인 코드 제거가 캐시 효율 개선에 기여.
 
+12. **Unity 설정 자동 검증**: 빌드 전 검사 스크립트로 IL2CPP 설정과 WhisperManager 기본값 일치 여부를 확인. 실수로 인한 성능 저하 방지.
+
 ### 미실행 실험 및 사유
 
 | 실험 | 사유 |
@@ -120,13 +121,16 @@ WHISPER_LOG 매크로=비활성화     ← 성능 미미, 불필요 출력 제�
 
 | 파일 | 변경 내용 | 현재 상태 |
 |------|-----------|-----------|
-| `build_cpp.sh` | `build_android()` 전체 교체 | OPENMP=OFF, LTO=OFF, android-21 |
+| `build_cpp.sh` | `build_android()` 전체 교체 + 플래그 설명 주석 추가 | OPENMP=OFF, LTO=OFF, android-21 |
 | `Assets/Editor/AutoBuilder.cs` | NDK 경로 자동 설정 + IL2CPP Master + OptimizeSpeed | 활성 |
+| `Assets/Editor/AndroidPreprocessBuild.cs` | 빌드 전 최적화 설정 검증 추가 | 활성 |
+| `Assets/Editor/WhisperManagerEditor.cs` | Inspector 경고 HelpBox 추가 | 활성 |
 | `Assets/Samples/1 - Audio Clip/AudioClipDemo.cs` | `GetTextAsyncOptimized(clip)` 호출 | 활성 |
 | `Packages/.../Plugins/Android/` | libggml*.a 삭제, libwhisper.a만 유지 | 활성 |
 | `Packages/.../Runtime/WhisperManager.cs` | threads=0, flashAttn=true, tempInc=0, bestOf=1 | 원복 완료 |
 | `ProjectSettings/ProjectSettings.asset` | managedStrippingLevel Android: 3 (High) | 활성 |
 | `whisper.cpp/src/whisper.cpp` | WHISPER_LOG 매크로 → no-op | 활성 (diff 보관) |
+| `Assets/Editor/OptimizationValidator.cs` | 파일 제거 (AndroidPreprocessBuild로 대체) | 제거됨 |
 
 ---
 
