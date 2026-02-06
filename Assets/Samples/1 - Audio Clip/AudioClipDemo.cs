@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Diagnostics;
 using UnityEngine;
 using UnityEngine.UI;
@@ -15,6 +16,8 @@ namespace Whisper.Samples
         public bool streamSegments = true;
         public bool echoSound = true;
         public bool printLanguage = true;
+        public bool autoRunOnStart = true;
+        public int autoRunRepeatCount = 100;
 
         [Header("UI")]
         public Button button;
@@ -25,6 +28,7 @@ namespace Whisper.Samples
         public Toggle translateToggle;
         
         private string _buffer;
+        private bool _isProcessing;
         
         private void Awake()
         {
@@ -40,22 +44,50 @@ namespace Whisper.Samples
             translateToggle.onValueChanged.AddListener(OnTranslateChanged);
         }
 
+        private IEnumerator Start()
+        {
+            if (!autoRunOnStart)
+                yield break;
+
+            // Wait for WhisperManager to fully initialize
+            yield return new WaitForSeconds(3f);
+            while (!manager.IsLoaded)
+                yield return new WaitForSeconds(1f);
+            
+            UnityEngine.Debug.Log("[Whisper] Auto-run: starting performance test");
+            
+            for (int i = 0; i < autoRunRepeatCount; i++)
+            {
+                while (_isProcessing)
+                    yield return null;
+                
+                UnityEngine.Debug.Log($"[Whisper] Auto-run iteration {i + 1}/{autoRunRepeatCount}");
+                ButtonPressed();
+                yield return new WaitForSeconds(1f);
+            }
+        }
+
         public async void ButtonPressed()
         {
             _buffer = "";
+            _isProcessing = true;
             if (echoSound)
                 AudioSource.PlayClipAtPoint(clip, Vector3.zero);
 
             var sw = new Stopwatch();
             sw.Start();
             
-            var res = await manager.GetTextAsync(clip);
+            var res = await manager.GetTextAsyncOptimized(clip);
+            _isProcessing = false;
             if (res == null || !outputText) 
                 return;
 
             var time = sw.ElapsedMilliseconds;
             var rate = clip.length / (time * 0.001f);
-            timeText.text = $"Time: {time} ms\nRate: {rate:F1}x";
+			string result = $"Time: {time} ms\nRate: {rate:F1}x";
+			
+			UnityEngine.Debug.Log($"[Whisper Result] {rate:F1}x");
+            timeText.text = result;
 
             var text = res.Result;
             if (printLanguage)

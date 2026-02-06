@@ -38,7 +38,6 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.44657815, g: 0.49641192, b: 0.57481617, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -1093,9 +1092,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   logLevel: 1
-  modelPath: Whisper/ggml-tiny.bin
+  modelPath: Whisper/ggml-base.bin
   isModelPathInStreamingAssets: 1
   initOnAwake: 1
+  useGpu: 1
+  flashAttention: 1
   language: auto
   translateToEnglish: 0
   strategy: 0
@@ -1103,14 +1104,13 @@ MonoBehaviour:
   singleSegment: 1
   enableTokens: 0
   initialPrompt: 
-  stepSec: 3
+  stepSec: 2
   keepSec: 0.2
-  lengthSec: 10
+  lengthSec: 8
   updatePrompt: 1
-  dropOldBuffer: 0
+  dropOldBuffer: 1
   useVad: 1
   tokensTimestamps: 0
-  speedUp: 0
   audioCtx: 0
 --- !u!1 &637716610
 GameObject:
@@ -1527,6 +1527,7 @@ Canvas:
   m_OverrideSorting: 0
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
+  m_VertexColorAlwaysGammaSpace: 0
   m_AdditionalShaderChannelsFlag: 0
   m_SortingLayerID: 0
   m_SortingOrder: 0
@@ -3102,8 +3103,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3bc03a4c19604ea394e364f8fc632928, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  loop: 1
   maxLengthSec: 60
+  loop: 1
   frequency: 16000
   chunksLengthSec: 0.5
   echo: 1
@@ -4401,6 +4402,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4f231c4fb786f3946a6b90b886c48677, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_SendPointerHoverToParent: 1
   m_HorizontalAxis: Horizontal
   m_VerticalAxis: Vertical
   m_SubmitButton: Submit
