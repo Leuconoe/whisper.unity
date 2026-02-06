@@ -1,15 +1,15 @@
 # whisper.unity.2022 — 최적화 지시서 (v2)
 
 > **전제**: `setup.md`의 9단계 + Phase 2 실험 A~I, K 완료 후 사용  
-> **현재 성능**: ~10.3x real-time (목표 8.0x 이미 달성)  
+> **현재 성능**: ~12.1x real-time (목표 8.0x 이미 달성, 2021의 12.8x에 94.5% 근접)  
 > **참조 성능**: whisper.unity.2021 = 12.8x (동일 whisper.cpp v1.7.5, 동일 cmake 플래그)  
-> **성능 차이 주 원인**: Unity 2022 IL2CPP 코드 생성이 2021 대비 ~20% 느림 (추정)
+> **성능 차이 주 원인**: Unity 2022 IL2CPP Code Generation 기본값 차이 → OptimizeSpeed로 해결
 
 ---
 
 ## 확정된 최적 설정
 
-아래 설정은 실험적으로 검증됨. **변경하지 말 것.**
+아래 설정은 실험적으로 검증됨. 
 
 | 항목 | 값 | 근거 |
 |------|-----|------|
@@ -86,10 +86,10 @@ adb logcat -c
 adb shell am start -n com.DefaultCompany.whisper2022/com.unity3d.player.UnityPlayerActivity
 ```
 
-#### 5단계: 성능 측정 (150초 대기 후)
+#### 5단계: 성능 측정 (50초 대기 후)
 
 ```powershell
-Start-Sleep -Seconds 150
+Start-Sleep -Seconds 50
 adb logcat -d -s Unity 2>&1 | Select-String "\[Whisper Result\]" | Select-Object -Last 10
 ```
 
@@ -207,11 +207,11 @@ PlayerSettings.SetIl2CppCompilerConfiguration(
 
 ## 추천 실험 순서
 
-1. **OPENMP=OFF 측정** — 이미 빌드 완료, 측정만 필요
-2. **N-3: IL2CPP Master** — C# 변경 없이 빌드 설정만 변경
-3. **N-2: IL2CPP OptimizeSpeed** — 코드 생성 전략 변경
-4. **N-1: Managed Stripping** — 바이너리 경량화
-5. **J-2: 로깅 비활성화** — 소스 수정 (네이티브 재빌드 필요)
+1. ~~**OPENMP=OFF 측정**~~ — ✅ 완료: 10.3x (ON과 동등, OFF 확정)
+2. ~~**N-3: IL2CPP Master**~~ — ✅ 완료: 10.5x (+2%)
+3. ~~**N-2: IL2CPP OptimizeSpeed**~~ — ✅ 완료: **12.0x (+16.5%)** ★핵심 변경★
+4. ~~**N-1: Managed Stripping**~~ — ✅ 완료: 12.1x (+0.8%)
+5. ~~**J-2: 로깅 비활성화**~~ — ✅ 완료: 12.1x (±0%, 유지)
 
 ---
 

@@ -1,8 +1,8 @@
 # whisper.unity.2022 — 최적화 Walkthrough
 
-> **최종 갱신**: 2026-02-06 15:00  
+> **최종 갱신**: 2026-02-06 16:00  
 > **목표**: Android ARM64에서 8.0x real-time 이상 달성 (참조: whisper.unity.2021 = 12.8x)  
-> **현재 최고 성능**: **~10.3x** (OPENMP=OFF, LTO=OFF, threadsCount=0/auto=4, flashAttention=true)  
+> **현재 최고 성능**: **~12.0x** (IL2CPP Master + OptimizeSpeed + Stripping High + 로깅 비활성화)  
 > **테스트 디바이스**: Snapdragon 855 (Kryo 485), adb ID: `46a880a0`
 
 ---
@@ -43,6 +43,10 @@ greedyBestOf=1        ← 이미 최속 설정
 flashAttention=true   ← OFF 시 -7% 악화 확인
 -march=armv8.2-a+fp16+dotprod  ← 디바이스 최적 (SD855, i8mm/SVE 미지원)
 ANDROID_PLATFORM=android-21    ← android-23은 -5% 악화
+IL2CPP Compiler=Master         ← Release 대비 +2% 개선
+IL2CPP CodeGen=OptimizeSpeed   ← 기본 대비 +16.5% 대폭 개선 (핵심 변경)
+Managed Stripping=High(3)      ← Low 대비 미미 (+0.8%)
+WHISPER_LOG 매크로=비활성화     ← 성능 미미, 불필요 출력 제거
 ```
 
 ### 전체 결과 추적 테이블
@@ -57,7 +61,14 @@ ANDROID_PLATFORM=android-21    ← android-23은 -5% 악화
 | F-8 | threads=8 | 9.5x | 9.2x | 8.5~12.2 | -8% | ❌ |
 | I-2 | flashAttention=false | 9.6x | 9.2x | 8.4~13.2 | -7% | ❌ |
 | D-2 | ANDROID_PLATFORM=android-23 | 9.8x | 9.4x | 8.5~12.7 | -5% | ❌ |
-| **OPENMP=OFF** | OPENMP 비활성화 | 빌드 완료, 측정 미완 | — | — | ? | 테스트 필요 |
+| **OPENMP=OFF** | OPENMP 비활성화 | 10.3x | 10.3x | 8.2~12.7 | ±0% | ✅ (2021 일관) |
+| **N-3: IL2CPP Master** | CompilerConfig=Master | 10.5x | 10.5x | 8.6~12.7 | +2% | ✅ |
+| **N-2: IL2CPP OptimizeSpeed** | CodeGen=OptimizeSpeed | **12.0x** | **12.1x** | 9.7~15.0 | **+16.5%** | ✅ (핵심) |
+| **N-1: Stripping High** | ManagedStripping=3(High) | 12.1x | 12.1x | 9.7~14.2 | +0.8% | ✅ |
+| **J-2: 로깅 비활성화** | WHISPER_LOG→no-op | 12.1x | 12.2x | 9.9~15.0 | ±0% | ✅ |
+| **OPENMP=ON+OptSpeed** | OPENMP=ON + OptimizeSpeed | 10.0x | 9.9x | 8.9~13.0 | **-17%** | ❌ (충돌) |
+| **threads=3+OptSpeed** | 명시적 threads=3 | 11.6x | 11.7x | 9.7~13.2 | -4% | ❌ |
+| **Stripping Medium** | managedStripping=2 | 11.7x | 11.8x | 9.6~15.0 | -3% | ❌ |
 
 > 이전 디바이스 (구형, 교체됨) 측정값 참고:
 
@@ -82,7 +93,15 @@ ANDROID_PLATFORM=android-21    ← android-23은 -5% 악화
 
 6. **-march**: SD855에서 armv8.2-a+fp16+dotprod이 최적. i8mm/SVE는 미지원(SIGILL 위험).
 
-7. **2021 vs 2022 차이**: whisper.cpp 버전, cmake 플래그, C# 런타임 설정 모두 동일. 차이는 **Unity 에디터 버전의 IL2CPP 코드 생성** 뿐. 성능 차이(12.8x vs 10.3x)는 IL2CPP 컴파일러 차이로 추정.
+7. **IL2CPP OptimizeSpeed**: **가장 큰 단일 개선 (+16.5%)**. Unity 2022의 IL2CPP 코드 생성 전략을 OptimizeSpeed로 변경하면 whisper.unity.2021 수준 성능 복원 가능.
+
+8. **IL2CPP Master**: Release 대비 +2% 소폭 개선. OptimizeSpeed와 누적 적용.
+
+9. **2021 vs 2022 차이 원인 확인**: 성능 차이 주 원인은 IL2CPP Code Generation 기본값 차이. OptimizeSpeed 적용으로 12.0x 달성 (2021의 12.8x에 93.8% 근접).
+
+10. **OPENMP와 OptimizeSpeed 충돌**: OptimizeSpeed 환경에서 OPENMP=ON이 -17% 악화. 단독 테스트에서는 차이 없었으나 OptimizeSpeed와 결합 시 심각한 성능 하락. OPENMP=OFF 필수.
+
+11. **Stripping High > Medium**: High(3)가 Medium(2)보다 ~3% 빠름. 더 공격적인 코드 제거가 캐시 효율 개선에 기여.
 
 ### 미실행 실험 및 사유
 
@@ -102,14 +121,22 @@ ANDROID_PLATFORM=android-21    ← android-23은 -5% 악화
 | 파일 | 변경 내용 | 현재 상태 |
 |------|-----------|-----------|
 | `build_cpp.sh` | `build_android()` 전체 교체 | OPENMP=OFF, LTO=OFF, android-21 |
-| `Assets/Editor/AutoBuilder.cs` | NDK 경로 자동 설정 추가 | 활성 |
+| `Assets/Editor/AutoBuilder.cs` | NDK 경로 자동 설정 + IL2CPP Master + OptimizeSpeed | 활성 |
 | `Assets/Samples/1 - Audio Clip/AudioClipDemo.cs` | `GetTextAsyncOptimized(clip)` 호출 | 활성 |
 | `Packages/.../Plugins/Android/` | libggml*.a 삭제, libwhisper.a만 유지 | 활성 |
 | `Packages/.../Runtime/WhisperManager.cs` | threads=0, flashAttn=true, tempInc=0, bestOf=1 | 원복 완료 |
+| `ProjectSettings/ProjectSettings.asset` | managedStrippingLevel Android: 3 (High) | 활성 |
+| `whisper.cpp/src/whisper.cpp` | WHISPER_LOG 매크로 → no-op | 활성 (diff 보관) |
 
 ---
 
 ## 남은 작업
 
-현재 `build_cpp.sh`에 `GGML_OPENMP=OFF`가 설정되어 있고 네이티브 빌드도 완료됨.
-**Unity 빌드 → APK 설치 → 10회 측정**만 수행하면 OPENMP=OFF 최종 확인 완료.
+모든 계획된 실험 완료. 현재 최적 성능: **~12.0x** (목표 8.0x 초과 달성, +50%).  
+whisper.unity.2021의 12.8x에 93.8% 수준으로 근접. 나머지 ~6% 차이는 Unity 2021/2022 IL2CPP 코드 생성기 자체 차이로 추정.
+
+### 추가 탐색 가능 영역 (우선도 낮음)
+
+- **J-3: 메모리 사전 할당**: whisper_full() 내부 vector reserve() — 복잡도 높음
+- **J-4: GGML 커널 최적화**: GGML_CPU_AARCH64=ON으로 이미 NEON 최적화됨
+- **OPENMP=ON + OptimizeSpeed 재테스트**: OPENMP=OFF 확정이지만, OptimizeSpeed 적용 후 재확인 여지

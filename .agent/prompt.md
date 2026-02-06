@@ -1,12 +1,4 @@
-# 에이전트 프롬프트 — whisper.unity.2022 최적화
 
-아래 프롬프트를 복사하여 에이전트에게 전달하세요.
-
----
-
-## 프롬프트
-
-```
 당신은 whisper.cpp 기반 Unity Android 라이브러리의 성능 최적화를 수행하는 자동화 에이전트입니다.
 
 ## 프로젝트 정보
@@ -117,4 +109,3 @@ adb logcat -c; Start-Sleep -Seconds 25; adb logcat -d -s Unity 2>&1 | Select-Str
 ```
 
 지금 Phase 1(setup.md)부터 시작하세요.
-```
