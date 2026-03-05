@@ -244,6 +244,8 @@ surface_normals/checkpoints/scannet.pt
 
 # Models
 checkpoints/
+Assets/StreamingAssets/Whisper/*.bin
+Assets/StreamingAssets/Whisper/*.bin.meta
 
 # TB
 runs/
