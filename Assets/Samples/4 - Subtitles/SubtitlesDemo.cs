@@ -61,7 +61,7 @@ namespace Whisper.Samples
             
             // TODO: if you want to speed this up, subscribe to segments event
             // this code will transcribe whole text first
-            var res = await whisper.GetTextAsync(clip);
+            var res = await whisper.GetTextAsyncOptimized(clip, true);
             
             var time = sw.ElapsedMilliseconds;
             var rate = clip.length / (time * 0.001f);
