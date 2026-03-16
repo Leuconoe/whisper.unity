@@ -75,7 +75,7 @@ namespace Whisper.Samples
             var sw = new Stopwatch();
             sw.Start();
             
-            var res = await whisper.GetTextAsync(recordedAudio.Data, recordedAudio.Frequency, recordedAudio.Channels);
+            var res = await whisper.GetTextAsyncOptimized(recordedAudio.Data, recordedAudio.Frequency, recordedAudio.Channels, true);
             if (res == null || !outputText) 
                 return;
 
