@@ -10,10 +10,15 @@ using UnityEngine;
 /// <summary>
 /// Validates Unity editor optimization settings before every Android build.
 /// Implements IPreprocessBuildWithReport to run automatically.
-/// Manual: menu Whisper > Validate Optimization Settings.
+/// Manual: menu Whisper.unity > Validate Optimization Settings.
 /// </summary>
 public class AndroidPreprocessBuild : IPreprocessBuildWithReport
 {
+    private const string MenuRoot = "Whisper.unity";
+    private const string RecommendedCompilerConfiguration = "Master";
+    private const string RecommendedCodeGeneration = "OptimizeSpeed";
+    private const string RecommendedManagedStripping = "High (3)";
+
     public int callbackOrder => 0;
 
     public void OnPreprocessBuild(BuildReport report)
@@ -32,22 +37,84 @@ public class AndroidPreprocessBuild : IPreprocessBuildWithReport
 
         Debug.LogWarning(FormatResults(results));
 
-        if (!EditorUtility.DisplayDialog(
-            "Whisper Optimization Warning",
-            $"{fail} optimization check(s) failed.\nSee Console for details.\n\nContinue building anyway?",
-            "Continue", "Cancel Build"))
+        if (Application.isBatchMode)
+        {
+            Debug.LogWarning($"[Whisper.unity] {fail} optimization check(s) failed. Continuing because batch mode cannot show dialogs.");
+            return;
+        }
+
+        var choice = EditorUtility.DisplayDialogComplex(
+            "Whisper.unity Optimization Warning",
+            $"{fail} optimization check(s) failed.\nSee Console for details.\n\nContinue building anyway, cancel the build, or apply the recommended settings now?",
+            "Continue",
+            "Cancel Build",
+            "Apply Recommended");
+
+        if (choice == 1)
         {
             throw new BuildFailedException(
-                $"Build cancelled: {fail} Whisper optimization check(s) failed.");
+                $"Build cancelled: {fail} Whisper.unity optimization check(s) failed.");
+        }
+
+        if (choice == 2)
+        {
+            ApplyRecommendedSettings();
+            Debug.Log("[Whisper.unity] Applied recommended Android optimization settings.");
         }
     }
 
-    [MenuItem("Whisper/Validate Optimization Settings", priority = 100)]
+    [MenuItem(MenuRoot + "/Validate Optimization Settings", priority = 100)]
     public static void ValidateAll()
     {
         var results = RunAllChecks();
-        string msg = FormatResults(results);
-        if (CountFailures(results) == 0) Debug.Log(msg); else Debug.LogWarning(msg);
+        var message = FormatResults(results);
+        var fail = CountFailures(results);
+
+        if (fail == 0)
+        {
+            Debug.Log(message);
+            if (!Application.isBatchMode)
+            {
+                EditorUtility.DisplayDialog(
+                    "Whisper.unity Optimization Validation",
+                    "All Android optimization checks passed. See Console for details.",
+                    "OK");
+            }
+
+            return;
+        }
+
+        Debug.LogWarning(message);
+
+        if (Application.isBatchMode)
+            return;
+
+        var choice = EditorUtility.DisplayDialogComplex(
+            "Whisper.unity Optimization Validation",
+            $"{fail} optimization check(s) failed.\nSee Console for details.\n\nApply the recommended settings now?",
+            "Apply Recommended",
+            "Close",
+            "Copy Summary");
+
+        if (choice == 0)
+        {
+            ApplyRecommendedSettings();
+            Debug.Log("[Whisper.unity] Applied recommended Android optimization settings.");
+            return;
+        }
+
+        if (choice == 2)
+        {
+            EditorGUIUtility.systemCopyBuffer = message;
+            Debug.Log("[Whisper.unity] Copied optimization validation summary to clipboard.");
+        }
+    }
+
+    [MenuItem(MenuRoot + "/Apply Recommended Optimization Settings", priority = 101)]
+    public static void ApplyRecommendedSettingsMenu()
+    {
+        ApplyRecommendedSettings();
+        Debug.Log("[Whisper.unity] Applied recommended Android optimization settings.");
     }
 
     // ── Core ──
@@ -101,42 +168,45 @@ public class AndroidPreprocessBuild : IPreprocessBuildWithReport
         var v = PlayerSettings.GetIl2CppCompilerConfiguration(BuildTargetGroup.Android);
         r.Add(new CheckResult {
             category = "IL2CPP", item = "Compiler Config",
-            expected = "Master", actual = v.ToString(),
+            expected = RecommendedCompilerConfiguration, actual = v.ToString(),
             passed = v == Il2CppCompilerConfiguration.Master
         });
     }
 
     private static void CheckIL2CPPCodeGen(System.Collections.Generic.List<CheckResult> r)
     {
-        var v = PlayerSettings.GetIl2CppCodeGeneration(UnityEditor.Build.NamedBuildTarget.Android);
+        var runtimeValue = PlayerSettings.GetIl2CppCodeGeneration(UnityEditor.Build.NamedBuildTarget.Android);
+        var hasSerializedValue = TryReadProjectSettingInt("il2cppCodeGeneration", "Android", out var serializedValue);
+        var serializedText = hasSerializedValue
+            ? $"{((UnityEditor.Build.Il2CppCodeGeneration)serializedValue)} ({serializedValue})"
+            : "Not Set";
+
         r.Add(new CheckResult {
             category = "IL2CPP", item = "Code Generation",
-            expected = "OptimizeSpeed", actual = v.ToString(),
-            passed = v == UnityEditor.Build.Il2CppCodeGeneration.OptimizeSpeed
+            expected = RecommendedCodeGeneration,
+            actual = $"Runtime {runtimeValue}, Serialized {serializedText}",
+            passed = runtimeValue == UnityEditor.Build.Il2CppCodeGeneration.OptimizeSpeed &&
+                     hasSerializedValue &&
+                     (UnityEditor.Build.Il2CppCodeGeneration)serializedValue ==
+                     UnityEditor.Build.Il2CppCodeGeneration.OptimizeSpeed
         });
     }
 
     private static void CheckStrippingLevel(System.Collections.Generic.List<CheckResult> r)
     {
-        string path = Path.Combine(Application.dataPath, "..", "ProjectSettings", "ProjectSettings.asset");
         string actual = "Unknown";
         bool passed = false;
 
-        if (File.Exists(path))
+        if (TryReadProjectSettingInt("managedStrippingLevel", "Android", out var lv))
         {
-            var m = Regex.Match(File.ReadAllText(path), @"managedStrippingLevel:\s*\n\s*Android:\s*(\d+)");
-            if (m.Success)
-            {
-                int lv = int.Parse(m.Groups[1].Value);
-                string[] names = { "Disabled", "Low", "Medium", "High" };
-                actual = lv < names.Length ? $"{names[lv]} ({lv})" : lv.ToString();
-                passed = lv == 3;
-            }
+            string[] names = { "Disabled", "Low", "Medium", "High" };
+            actual = lv < names.Length ? $"{names[lv]} ({lv})" : lv.ToString();
+            passed = lv == 3;
         }
 
         r.Add(new CheckResult {
             category = "Build", item = "Managed Stripping",
-            expected = "High (3)", actual = actual, passed = passed
+            expected = RecommendedManagedStripping, actual = actual, passed = passed
         });
     }
 
@@ -148,6 +218,63 @@ public class AndroidPreprocessBuild : IPreprocessBuildWithReport
             expected = "IL2CPP", actual = v.ToString(),
             passed = v == ScriptingImplementation.IL2CPP
         });
+    }
+
+    private static bool TryReadProjectSettingInt(string sectionName, string key, out int value)
+    {
+        value = default;
+
+        string path = Path.Combine(Application.dataPath, "..", "ProjectSettings", "ProjectSettings.asset");
+        if (!File.Exists(path))
+            return false;
+
+        var lines = File.ReadAllLines(path);
+        bool inSection = false;
+
+        foreach (var rawLine in lines)
+        {
+            var line = rawLine.Replace("\t", "    ");
+            var trimmed = line.Trim();
+
+            if (!inSection)
+            {
+                if (trimmed == $"{sectionName}: {{}}")
+                    return false;
+
+                if (trimmed == $"{sectionName}:")
+                {
+                    inSection = true;
+                }
+
+                continue;
+            }
+
+            if (!line.StartsWith("    "))
+                break;
+
+            var match = Regex.Match(trimmed, $@"^{Regex.Escape(key)}:\s*(\d+)$");
+            if (!match.Success)
+                continue;
+
+            value = int.Parse(match.Groups[1].Value);
+            return true;
+        }
+
+        return false;
+    }
+
+    private static void ApplyRecommendedSettings()
+    {
+        PlayerSettings.SetIl2CppCompilerConfiguration(
+            BuildTargetGroup.Android,
+            Il2CppCompilerConfiguration.Master);
+        PlayerSettings.SetIl2CppCodeGeneration(
+            NamedBuildTarget.Android,
+            Il2CppCodeGeneration.OptimizeSpeed);
+        PlayerSettings.SetManagedStrippingLevel(
+            BuildTargetGroup.Android,
+            ManagedStrippingLevel.High);
+        AssetDatabase.SaveAssets();
     }
 
 }
