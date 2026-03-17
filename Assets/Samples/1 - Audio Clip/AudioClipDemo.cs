@@ -49,7 +49,7 @@ namespace Whisper.Samples
             var sw = new Stopwatch();
             sw.Start();
             
-            var res = await manager.GetTextAsync(clip);
+            var res = await manager.GetTextAsyncOptimized(clip, true);
             if (res == null || !outputText) 
                 return;
 
