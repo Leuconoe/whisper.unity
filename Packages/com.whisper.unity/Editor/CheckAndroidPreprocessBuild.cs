@@ -132,6 +132,7 @@ public class AndroidPreprocessBuild : IPreprocessBuildWithReport
         CheckIL2CPPCodeGen(r);
         CheckStrippingLevel(r);
         CheckScriptingBackend(r);
+        CheckArm64Architecture(r);
         return r;
     }
 
@@ -220,6 +221,20 @@ public class AndroidPreprocessBuild : IPreprocessBuildWithReport
         });
     }
 
+    private static void CheckArm64Architecture(System.Collections.Generic.List<CheckResult> r)
+    {
+        // whisper.cpp native library is built for ARM64 with NEON/ASIMD optimizations.
+        // ARMv7 fallback loses all SIMD acceleration and runs ~3-5x slower.
+        var arch = PlayerSettings.Android.targetArchitectures;
+        bool hasArm64 = (arch & AndroidArchitecture.ARM64) != 0;
+        bool armv7Only = (arch & AndroidArchitecture.ARMv7) != 0 && !hasArm64;
+        r.Add(new CheckResult {
+            category = "Build", item = "Target Architecture",
+            expected = "ARM64", actual = arch.ToString(),
+            passed = hasArm64 && !armv7Only
+        });
+    }
+
     private static bool TryReadProjectSettingInt(string sectionName, string key, out int value)
     {
         value = default;
@@ -274,6 +289,9 @@ public class AndroidPreprocessBuild : IPreprocessBuildWithReport
         PlayerSettings.SetManagedStrippingLevel(
             BuildTargetGroup.Android,
             ManagedStrippingLevel.High);
+        // Ensure ARM64 is included — whisper.cpp native library requires ARM64 NEON/ASIMD.
+        PlayerSettings.Android.targetArchitectures =
+            PlayerSettings.Android.targetArchitectures | AndroidArchitecture.ARM64;
         AssetDatabase.SaveAssets();
     }
 
